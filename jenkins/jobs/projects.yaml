@@ -1,0 +1,16 @@
+- project:
+    name: ci-sandbox
+    github-org: openstack-dev
+    node: master
+    vendor: Kaminario
+
+    jobs:
+        
+        - kaminario-dsvm-tempest-full-FC:
+            node: 'devstack_slave || devstack-precise-check || d-p-c-fc'
+        - kaminario-dsvm-tempest-full-iscsi:
+            node: 'devstack_slave || devstack-precise-check || d-p-c-iscsi'
+        # - kaminario-dsvm-test1:
+        #     node: 'devstack_slave || devstack-precise-check || d-p-c-fc'
+        # - kaminario-dsvm-test2:
+        #     node: 'devstack_slave || devstack-precise-check || d-p-c-iscsi'

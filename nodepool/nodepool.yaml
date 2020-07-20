@@ -1,0 +1,111 @@
+script-dir: /etc/nodepool/scripts
+elements-dir: /etc/nodepool/elements
+images-dir: /opt/nodepool_dib
+
+cron:
+  cleanup: '*/1 * * * *'
+  check: '*/15 * * * *'
+# TODO: Please choose a random hour for nodepool image updates.
+# This will help reduce the load on upstream git farms & mirros where all 3rd
+# party ci systems start building images at the same time.
+# Doing so is easy, run the following command and replace image-update string
+# with the results:
+#   echo "0 $((RANDOM%23+1)) * * *"
+# Example:
+#   root@jenkins:~# echo "0 $((RANDOM%23+1)) * * *"
+#   0 16 * * *
+# This references the hour of the day when images will be built.
+  image-update: '30 8 1 * *'
+
+zmq-publishers:
+  - tcp://localhost:8888
+
+gearman-servers:
+  - host: localhost
+
+labels:
+  - name: d-p-c-iscsi
+    image: dpc
+    min-ready: 1
+    providers:
+      - name: local-iscsi
+
+  - name: d-p-c-fc
+    image: dpc
+    min-ready: 1
+    providers:
+      - name: local-fc
+
+diskimages:
+    - name: dpc
+      elements:
+      - ubuntu
+      - vm
+      - simple-init
+      - openstack-repos
+      - nodepool-base
+      - cache-devstack
+      - growroot
+      - infra-package-needs
+      release: bionic
+      env-vars:
+        TMPDIR: /opt/dib_tmp
+        DIB_IMAGE_CACHE: /opt/dib_cache
+      
+
+providers:
+  - name: local-fc
+#TODO: Update the provider username, password, and authurl
+    username: 'admin'
+    password: 'Vedams123'
+    auth-url: 'http://192.168.6.6/identity/v3/'
+    project-name: 'demo'
+    boot-timeout: 1200
+    project-domain-id: default
+    user-domain-id: default
+    max-servers: 1
+    networks:
+      - name: private
+    security-groups:
+      - default
+    images:
+      - name: dpc
+        min-ram: 16384
+        name-filter: 'm1.xlarge'
+        diskimage: dpc
+        username: zuul
+        private-key: '/home/nodepool/.ssh/id_rsa'
+
+  - name: local-iscsi
+#TODO: Update the provider username, password, and authurl
+    username: 'admin'
+    password: 'Vedams123'
+    auth-url: 'http://192.168.6.6/identity/v3/'
+    project-name: 'demo'
+    project-domain-id: default
+    user-domain-id: default
+    boot-timeout: 1200
+    max-servers: 1
+    networks:
+      - name: private
+    security-groups:
+      - default
+    images:
+      - name: dpc
+        min-ram: 16384
+        name-filter: 'm1.xxlarge'
+        diskimage: dpc
+        username: zuul
+        private-key: '/home/nodepool/.ssh/id_rsa'
+
+
+targets:
+  - name: jenkins1
+    kaminario:
+      url: 'http://localhost:8080/'
+#TODO: If you are using a different user in vars.sh JENKINS_API_USER, update it here.
+      user: 'kaminario'
+#TODO: If you are using secured jenkins, update this to vars.sh JENKINS_API_KEY.
+      apikey: '11b3491ec591409306f28398ca09601ff4'
+#TODO: If you changed JENKINS_CREDENTIALS_ID in vars.sh, update it here too:
+      credentials-id: 'c452bb18-3120-4eb2-88db-d3bbaf817ffe'
